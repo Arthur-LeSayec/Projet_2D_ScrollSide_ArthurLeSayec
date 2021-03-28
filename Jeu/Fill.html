@@ -1,0 +1,235 @@
+<!doctype html> 
+<html lang="en"> 
+<head> 
+    <meta charset="UTF-8" />
+    <title>Fill</title>
+    <script src="//cdn.jsdelivr.net/npm/phaser@3.11.0/dist/phaser.js"></script>
+    <style type="text/css">
+        body {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+<script type="text/javascript">
+
+var config = {
+    type: Phaser.AUTO,
+    width: 1280,
+    height: 720,
+    physics: {
+        default: 'arcade',
+        arcade: {
+            gravity: { y: 200 },
+            debug: false
+        }
+    },
+    scene: {
+        preload: preload,
+        create: create,
+        update: update
+    }
+};
+
+var platforms;
+var alien;
+var balle;
+var acide;
+var jerrican;
+var player;
+var gameover = false
+var ennemi;
+var o2;
+var padConnected;
+
+
+
+var game = new Phaser.Game(config);
+
+function preload ()
+{
+    this.load.image('fond1', 'asset/Fond1.png');
+    this.load.image('fond2', 'asset/Fond2.png');
+    this.load.image('fond3', 'asset/Fond3.png');
+    this.load.image('fond4', 'asset/Fond4.png');
+    this.load.image('fond5', 'asset/Fond5.png');   
+    this.load.image('pieuvre', 'asset/alien.png');
+    this.load.image('powerup', 'asset/o2.png');
+    this.load.image('acide', 'asset/projectileEnnemie.png');
+    this.load.image('balle', 'asset/projectilePerso.png');
+    this.load.image('sol1', 'asset/sol1.png');
+    this.load.image('sol2', 'asset/sol2.png');
+    this.load.image('sol3', 'asset/sol3.png');
+    this.load.image('spawn', 'asset/spawn.png');
+    this.load.image('fusée', 'asset/vaisseau.png');
+    this.load.image('soucoupe', 'asset/vaisseauAlien.png');
+    this.load.image('vie0', 'asset/vie0.png');
+    this.load.image('vie1', 'asset/vie1.png');
+    this.load.image('vie2', 'asset/vie2.png');
+    this.load.image('jerrican', 'asset/jerrican.png');
+    this.load.spritesheet('player', 'asset/perso2.png', { frameWidth: 81, frameHeight: 100  });
+}
+
+function create ()
+{
+    //Fond
+     
+    this.add.image(650, 3200, 'fond2');
+    this.add.image(645,2480, 'fond1');
+    this.add.image(1450,3200, 'fond3');
+    this.add.image(1445,2480, 'fond1');
+    
+    
+    
+    //sol
+    platforms = this.physics.add.staticGroup();
+    platforms.create(346, 3555, 'sol1');
+    platforms.create(1030, 3555, 'sol2');
+    platforms.create(1714, 3555, 'sol3');
+    platforms.create(2398, 3555, 'sol1');
+    platforms.create(3082, 3555, 'sol3');
+    platforms.create(3766, 3555, 'sol2');
+    
+
+    
+    
+    //platforme
+    
+    platforms.create(800, 3300, 'soucoupe');
+    platforms.create(346, 3200, 'soucoupe');
+    platforms.create(600, 3000, 'soucoupe');
+    
+  
+
+    
+
+    
+    //Joueur
+    player = this.physics.add.sprite(150, 3400, 'player');
+    
+    this.cameras.main.startFollow(player, true);
+    
+    player.setCollideWorldBounds(true);
+    this.physics.add.collider(player, platforms);
+    
+    
+    this.anims.create({
+        key: 'left',
+        frames: [ { key: 'player', frame: 0 } ],
+        frameRate: 10,
+        
+    });
+
+    this.anims.create({
+        key: 'turn',
+        frames: [ { key: 'player', frame: 1  } ],
+        frameRate: 20
+    });
+
+    this.anims.create({
+        key: 'right',
+        frames: [ { key: 'player', frame: 2 } ],
+        frameRate: 10,
+        
+        
+    });
+    //camera
+    cursors = this.input.keyboard.createCursorKeys();
+    cursors = this.input.keyboard.addKeys({ 'up': Phaser.Input.Keyboard.KeyCodes.Z, 'down': Phaser.Input.Keyboard.KeyCodes.S, 'left': Phaser.Input.Keyboard.KeyCodes.Q, 'right': Phaser.Input.Keyboard.KeyCodes.D });   
+    
+    this.cameras.main.setBounds(0, 0, 6400, 3600);
+    this.physics.world.setBounds(0, 0, 6400, 3600);
+    
+    
+    //power up
+    
+     o2= this.physics.add.group({
+        key: 'powerup',
+        repeat: 1,
+        setXY: { x: 800, y: 3100}
+    });
+    
+    //ennemi
+    ennemi = this.physics.add.sprite(600 , 3400, 'pieuvre');
+    
+    //colision
+    this.physics.add.collider(o2, platforms);
+    this.physics.add.overlap(player, o2);
+    this.physics.add.collider(ennemi, platforms);
+    this.physics.add.overlap(player, ennemi);
+
+       
+}
+    
+    
+    
+    
+    
+    
+    
+    
+function update ()
+{
+
+    if (cursors.left.isDown)
+    {
+        player.setVelocityX(-300);
+
+        player.anims.play('left', true);
+    }
+    else if (cursors.right.isDown)
+    {
+        player.setVelocityX(300);
+
+        player.anims.play('right', true);
+    }
+    else
+    {
+        player.setVelocityX(0);
+
+        player.anims.play('turn');
+    }
+
+    if (cursors.up.isDown && player.body.touching.down)
+    {
+        player.setVelocityY(-330);
+    }
+    
+    if (cursors.up.isDown && !player.body.touching.down && unlockDoubleJump && doubleJump)
+    {
+        player.setVelocityY(-330);
+        doubleJump = false;
+    }
+    
+    if (!cursors.up.isDown)
+    {
+        unlockDoubleJump =true;
+     }
+    
+    if (player.body.touching.down)
+    {
+        doubleJump = true;
+        unlockDoubleJump = false;
+    }
+    
+    //manette   
+    /*this.input.gamepad.once('connected', function (pad) {
+        paddle = pad;
+        padConnected = true;*/
+    
+    //collect power up pour activer double saut
+    
+    
+    
+    //ennemi
+    
+
+}
+
+
+
+</script>
+
+</body>
+</html>
